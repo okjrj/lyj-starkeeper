@@ -299,6 +299,28 @@ h1 img { display: block; width: 100%; height: auto; }
   stroke: #fff7da;
   filter: drop-shadow(0 0 5px #ffda85) drop-shadow(0 0 10px #ffbd55);
 }
+.room-note { left: 29.8%; top: 49.5%; width: 6.4%; height: 7.6%; }
+.room-note .room-note-paper {
+  fill: #d9ba85;
+  stroke: #3e2c30;
+  filter: drop-shadow(1px 3px 2px #071324a8);
+}
+.room-note .room-note-ink,
+.room-note:enabled:is(:hover, :focus-visible, [data-hand-hover]) .room-note-ink {
+  fill: none;
+  stroke: #80644f;
+  stroke-width: 1px;
+  filter: none;
+  pointer-events: none;
+}
+.room-note-message::after {
+  content: "";
+  position: absolute;
+  top: calc(100% - 1px);
+  left: calc(50% - 10px);
+  border: 10px solid transparent;
+  border-top-color: rgba(249, 251, 255, .9);
+}
 .room-controls, .room-selection {
   position: absolute;
   left: 50%;

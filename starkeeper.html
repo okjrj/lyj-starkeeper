@@ -68,8 +68,14 @@
       <div class="room-scroll">
         <div class="room-panorama">
           <img src="image/room-panorama.png" alt="별 관리인의 빈 방" draggable="false">
-          <button class="room-object" type="button" aria-label="별이 든 리어카" aria-pressed="false" style="left:3.5300%;top:56.1160%;width:22.4407%;height:40.3531%">
+          <button class="room-object" type="button" aria-label="별이 든 박스" aria-pressed="false" style="left:3.5300%;top:56.1160%;width:22.4407%;height:40.3531%">
             <svg viewBox="70 445 445 320" preserveAspectRatio="none" aria-hidden="true"><path d="M80 564 L111 551 L125 535 L147 534 L166 522 L195 522 L172 501 L209 491 L231 455 L251 483 L289 484 L282 512 L311 510 L327 518 L349 508 L369 516 L391 516 L410 510 L430 526 L447 520 L465 532 L480 536 L503 548 L504 681 L489 694 Q493 715 473 720 L421 732 Q418 754 400 755 Q379 754 376 730 L129 715 Q126 740 108 738 Q89 738 86 711 L79 709 Z"/></svg>
+          </button>
+          <button class="room-object room-note" type="button" aria-label="침대 위 메모 읽기" aria-controls="room-note-message" aria-expanded="false" disabled>
+            <svg viewBox="0 0 126 60" preserveAspectRatio="none" aria-hidden="true">
+              <path class="room-note-paper" d="M5 29 Q18 24 34 8 L102 5 Q106 15 120 33 L103 46 Q66 51 28 55 Z"/>
+              <path class="room-note-ink" d="M35 24 87 17 M43 31 96 24 M50 38 83 33 M100 44 107 34 119 33 M24 31 28 25 33 30 28 34 Z"/>
+            </svg>
           </button>
           <button class="room-object room-window" type="button" aria-label="창문" disabled style="left:47.5038%;top:7.3140%;width:15.3807%;height:49.3064%">
             <svg viewBox="942 58 305 391" preserveAspectRatio="none" aria-hidden="true"><path d="M956 95 L965 88 L1218 71 L1230 64 L1240 75 L1231 86 L1231 171 L1238 183 L1231 196 L1234 285 L1238 301 L1230 306 L1223 299 L1224 439 L970 429 L969 101 L961 115 L960 391 L964 411 L957 417 L950 412 L954 391 L954 112 L947 103 Z"/></svg>
@@ -81,7 +87,8 @@
       </div>
       <div class="room-guide" role="status">
         <p class="house-message-card room-guide-intro">방을 둘러볼까요? <strong>양손</strong>으로 <strong>검지</strong>를 들고 좌우로 움직이세요.</p>
-        <p class="house-message-card room-guide-discovery" hidden>어라? 그런데 <strong>별 관리인</strong>이 없네요!</p>
+        <p class="house-message-card room-guide-discovery" hidden>어라? 그런데 <strong>별 관리인</strong>이 없네요!<br>침대 위에 메모가 있는 것 같아요. 확인해 볼까요?</p>
+        <p class="house-message-card room-note-message" id="room-note-message" hidden>당신을 <strong>별 관리인</strong>으로 임명합니다. 창문을 먼저 열어보세요.</p>
       </div>
       <p class="room-selection" role="status"></p>
       <div class="room-controls">

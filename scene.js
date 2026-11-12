@@ -11,6 +11,9 @@ const houseMessage = document.querySelector('.house-message');
 const interior = document.querySelector('.house-interior');
 const roomScroll = interior.querySelector('.room-scroll');
 const roomObjects = [...interior.querySelectorAll('.room-object')];
+const roomSelectableObjects = roomObjects.filter((button) => button.hasAttribute('aria-pressed'));
+const roomNote = interior.querySelector('.room-note');
+const roomNoteMessage = interior.querySelector('.room-note-message');
 const roomWindow = interior.querySelector('.room-window');
 const windowView = document.querySelector('.window-view');
 const roomControls = [...interior.querySelectorAll('[data-pan]')];
@@ -68,11 +71,13 @@ function showView(view) {
   windowView.hidden = view !== 'window';
   if (view === 'interior' && previousView !== 'window') {
     roomScroll.scrollLeft = 0;
-    roomObjects.filter((button) => button !== roomWindow)
-      .forEach((button) => button.setAttribute('aria-pressed', 'false'));
+    roomSelectableObjects.forEach((button) => button.setAttribute('aria-pressed', 'false'));
     roomSelection.textContent = '';
     roomGuideIntro.hidden = false;
     roomGuideDiscovery.hidden = true;
+    roomNoteMessage.hidden = true;
+    roomNote.disabled = true;
+    roomNote.setAttribute('aria-expanded', 'false');
     roomWindow.disabled = true;
   }
   if (view === 'interior') updateRoomControls();
@@ -298,7 +303,7 @@ async function startCamera() {
 function updateRoomControls() {
   roomControls[0].disabled = roomScroll.scrollLeft <= 1;
   roomControls[1].disabled = roomScroll.scrollLeft + roomScroll.clientWidth >= roomScroll.scrollWidth - 1;
-  if (interior.hidden || !roomGuideDiscovery.hidden) return;
+  if (interior.hidden || !roomNote.disabled) return;
   if (!roomControls[1].disabled) {
     clearTimeout(roomDiscoveryTimer);
     roomDiscoveryTimer = undefined;
@@ -308,7 +313,7 @@ function updateRoomControls() {
       if (interior.hidden || !roomControls[1].disabled) return;
       roomGuideIntro.hidden = true;
       roomGuideDiscovery.hidden = false;
-      roomWindow.disabled = false;
+      roomNote.disabled = false;
     }, 2000);
   }
 }
@@ -323,13 +328,15 @@ function panRoom(direction) {
 roomScroll.addEventListener('scroll', updateRoomControls);
 window.addEventListener('resize', updateRoomControls);
 roomControls.forEach((button) => button.addEventListener('click', () => panRoom(Number(button.dataset.pan))));
-roomObjects.forEach((button) => button.addEventListener('click', () => {
-  if (button === roomWindow) {
-    if (!roomWindow.disabled) showView('window');
-    return;
-  }
-  roomObjects.filter((object) => object !== roomWindow)
-    .forEach((object) => object.setAttribute('aria-pressed', String(object === button)));
+roomNote.addEventListener('click', () => {
+  roomGuideDiscovery.hidden = true;
+  roomNoteMessage.hidden = false;
+  roomNote.setAttribute('aria-expanded', 'true');
+  roomWindow.disabled = false;
+});
+roomWindow.addEventListener('click', () => showView('window'));
+roomSelectableObjects.forEach((button) => button.addEventListener('click', () => {
+  roomSelectableObjects.forEach((object) => object.setAttribute('aria-pressed', String(object === button)));
   roomSelection.textContent = button.getAttribute('aria-label');
 }));
 
