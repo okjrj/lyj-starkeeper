@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#001230">
+  <title>별 관리인의 하루</title>
+  <link rel="preload" as="image" href="assets/magic-glove-fist.svg">
+  <link rel="preload" as="image" href="assets/magic-glove-point.svg">
+  <link rel="stylesheet" href="styles.css">
+  <script src="scene.js" defer></script>
+</head>
+<body>
+  <main class="experience" data-view="title">
+    <div class="landscape">
+      <div class="cloudscape"></div>
+      <div class="stars"></div>
+      <svg class="island" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <clipPath id="island-silhouette">
+            <path d="M355 1080 L505 690 Q525 644 558 645 L628 637 L669 625 L707 617 L775 0 H837
+              L796 371 L816 369 L838 354 L857 369 L893 435 L897 491 L869 530 L854 548 L856 561
+              L880 566 L877 601 L904 599 L887 355 L852 353 L976 111 L1017 120 L1017 67 L1013 54
+              L1032 50 L1034 39 L1040 39 L1041 51 L1064 54 L1063 70 L1056 70 L1058 134 L1090 142
+              L1175 359 L1142 365 L1127 500 L1149 497 L1150 528 L1173 523 L1172 550 L1187 548
+              L1196 574 L1214 568 L1226 588 L1248 577 L1261 596 L1276 587 L1288 606 L1308 594
+              L1320 613 L1336 609 L1351 629 L1368 622 L1380 675 L1420 679 L1460 680 L1507 705 L1624 1080 Z"/>
+          </clipPath>
+          <linearGradient id="vertical-fade" x2="0" y2="1">
+            <stop stop-color="white"/>
+            <stop offset=".85" stop-color="white"/>
+            <stop offset="1" stop-color="white" stop-opacity="0"/>
+          </linearGradient>
+          <mask id="soft-base" mask-type="alpha"><rect width="1920" height="1080" fill="url(#vertical-fade)"/></mask>
+          <clipPath id="tree-silhouette">
+            <path d="M1418 684 L1441 548 L1471 467 L1509 404 L1528 302 L1565 250 L1620 228
+              L1758 233 L1785 297 L1881 330 L1885 423 L1749 475 L1643 469 L1555 445
+              L1510 495 L1485 555 L1454 684 Z"/>
+          </clipPath>
+          <filter id="tree-sky-key" color-interpolation-filters="sRGB">
+            <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  12 0 0 0 -.4"/>
+            <feComposite in="SourceGraphic" operator="in"/>
+          </filter>
+        </defs>
+        <g class="ladder-extension" fill="none" stroke="#a88b65" stroke-width="7">
+          <path d="M779 2l63-570M831 2l63-570"/>
+          <path d="M782-29h52m-46-53h52m-46-53h52m-46-53h52m-46-53h52m-46-53h52m-46-53h52m-46-53h52m-46-53h52m-46-53h52"/>
+        </g>
+        <g mask="url(#soft-base)">
+          <g clip-path="url(#island-silhouette)">
+            <image href="image/title_full.png" width="1920" height="1080"/>
+          </g>
+        </g>
+        <g class="tree" clip-path="url(#tree-silhouette)">
+          <image href="image/title_full.png" width="1920" height="1080" filter="url(#tree-sky-key)"/>
+        </g>
+        <foreignObject x="911" y="404" width="128" height="222">
+          <button class="house-door" type="button" aria-label="별 관리인의 집에 들어가기" hidden></button>
+        </foreignObject>
+      </svg>
+    </div>
+    <section class="house-interior" aria-label="별 관리인의 방" hidden>
+      <div class="room-scroll">
+        <div class="room-panorama">
+          <img src="image/room-panorama.png" alt="별 관리인의 빈 방" draggable="false">
+          <button class="room-object" type="button" aria-label="별이 든 리어카" aria-pressed="false" style="left:3.5300%;top:56.1160%;width:22.4407%;height:40.3531%">
+            <svg viewBox="70 445 445 320" preserveAspectRatio="none" aria-hidden="true"><path d="M80 564 L111 551 L125 535 L147 534 L166 522 L195 522 L172 501 L209 491 L231 455 L251 483 L289 484 L282 512 L311 510 L327 518 L349 508 L369 516 L391 516 L410 510 L430 526 L447 520 L465 532 L480 536 L503 548 L504 681 L489 694 Q493 715 473 720 L421 732 Q418 754 400 755 Q379 754 376 730 L129 715 Q126 740 108 738 Q89 738 86 711 L79 709 Z"/></svg>
+          </button>
+          <button class="room-object" type="button" aria-label="창문" aria-pressed="false" style="left:47.5038%;top:7.3140%;width:15.3807%;height:49.3064%">
+            <svg viewBox="942 58 305 391" preserveAspectRatio="none" aria-hidden="true"><path d="M956 95 L965 88 L1218 71 L1230 64 L1240 75 L1231 86 L1231 171 L1238 183 L1231 196 L1234 285 L1238 301 L1230 306 L1223 299 L1224 439 L970 429 L969 101 L961 115 L960 391 L964 411 L957 417 L950 412 L954 391 L954 112 L947 103 Z"/></svg>
+          </button>
+          <button class="room-object" type="button" aria-label="현관문" aria-pressed="false" style="left:70.8522%;top:2.5221%;width:14.1200%;height:73.1400%">
+            <svg viewBox="1405 20 280 580" preserveAspectRatio="none" aria-hidden="true"><path d="M1414 568 L1413 160 C1413 90 1458 31 1542 28 C1625 29 1675 91 1676 156 L1673 590 Z"/></svg>
+          </button>
+        </div>
+      </div>
+      <p class="room-selection" role="status"></p>
+      <div class="room-controls">
+        <button type="button" data-pan="-1" aria-label="왼쪽 둘러보기">←</button>
+        <button type="button" data-pan="1" aria-label="오른쪽 둘러보기">→</button>
+      </div>
+    </section>
+    <section class="title-panel" aria-labelledby="title">
+      <h1 id="title"><img src="assets/title-logo.png" alt="별 관리인의 하루"></h1>
+      <p class="instructions">웹캠을 켜고 <strong>두 손에 끼워진 장갑</strong>을 확인하세요.<br>장갑으로 <strong>주먹, 보자기, 검지 들기</strong>를 할 수 있어요.<br>장갑을 버튼 위에 올리고 <strong>주먹을 쥐었다가 펴면 클릭</strong>됩니다.</p>
+      <div class="actions">
+        <button class="camera-toggle" type="button" aria-pressed="false">웹캠켜기</button>
+        <button class="start" type="button"><span>시작하기</span><span aria-hidden="true">→</span></button>
+      </div>
+    </section>
+    <p class="camera-status" role="status"></p>
+    <video class="camera-input" muted playsinline hidden></video>
+    <div class="gloves" aria-hidden="true">
+      <img class="magic-glove" data-glove="pointer" data-pose="point" src="assets/magic-glove-point.svg" alt="" hidden>
+      <img class="magic-glove" data-glove="left" src="assets/magic-glove.svg" alt="" hidden>
+      <img class="magic-glove" data-glove="right" src="assets/magic-glove.svg" alt="" hidden>
+    </div>
+    <p class="house-message" role="status" hidden>이곳은 <strong>별 관리인</strong>의 <strong>집</strong>입니다. 안으로 들어가 볼까요?<br>(<strong>문</strong>을 클릭해 주세요!)</p>
+    <button class="back" type="button" hidden><span aria-hidden="true">←</span><span class="back-label">타이틀로 돌아가기</span></button>
+  </main>
+</body>
+</html>
