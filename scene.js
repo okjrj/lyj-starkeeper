@@ -2,13 +2,21 @@ const experience = document.querySelector('.experience');
 const titlePanel = document.querySelector('.title-panel');
 const start = document.querySelector('.start');
 const back = document.querySelector('.back');
+const sceneMenu = document.querySelector('.scene-menu');
+const home = sceneMenu.querySelector('.home');
+const helpToggle = sceneMenu.querySelector('.help-toggle');
+const sceneHelp = sceneMenu.querySelector('.scene-help');
 const door = document.querySelector('.house-door');
 const houseMessage = document.querySelector('.house-message');
 const interior = document.querySelector('.house-interior');
 const roomScroll = interior.querySelector('.room-scroll');
 const roomObjects = [...interior.querySelectorAll('.room-object')];
+const roomWindow = interior.querySelector('.room-window');
+const windowView = document.querySelector('.window-view');
 const roomControls = [...interior.querySelectorAll('[data-pan]')];
 const roomSelection = interior.querySelector('.room-selection');
+const roomGuideIntro = interior.querySelector('.room-guide-intro');
+const roomGuideDiscovery = interior.querySelector('.room-guide-discovery');
 const sky = document.querySelector('.stars');
 const cameraToggle = document.querySelector('.camera-toggle');
 const cameraStatus = document.querySelector('.camera-status');
@@ -25,7 +33,10 @@ const gloveImages = {
 };
 const fingerJoints = [[5, 6, 8], [9, 10, 12], [13, 14, 16], [17, 18, 20]];
 const handActions = new Map();
-const gestureButtons = [cameraToggle, start, door, back, ...roomObjects, ...roomControls];
+const gestureButtons = [cameraToggle, start, door, home, back, helpToggle, ...roomObjects, ...roomControls];
+let handDrag = null;
+let helpHideTimer;
+let roomDiscoveryTimer;
 const visionPackage = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.32';
 const handModel = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
 let cameraSession = null;
@@ -43,20 +54,36 @@ for (let index = 0; index < 43; index += 1) {
 }
 
 function showView(view) {
+  const previousView = experience.dataset.view;
+  clearTimeout(roomDiscoveryTimer);
+  roomDiscoveryTimer = undefined;
   clearHandActions();
+  handDrag = null;
+  showHelp(false);
   experience.dataset.view = view;
   titlePanel.inert = view !== 'title';
-  back.hidden = view === 'title';
-  back.setAttribute('aria-label', view === 'interior' ? '이전 장면으로 돌아가기' : '타이틀로 돌아가기');
+  sceneMenu.hidden = view === 'title';
   door.hidden = houseMessage.hidden = view !== 'landscape';
   interior.hidden = view !== 'interior';
-  if (view === 'interior') {
+  windowView.hidden = view !== 'window';
+  if (view === 'interior' && previousView !== 'window') {
     roomScroll.scrollLeft = 0;
-    roomObjects.forEach((button) => button.setAttribute('aria-pressed', 'false'));
+    roomObjects.filter((button) => button !== roomWindow)
+      .forEach((button) => button.setAttribute('aria-pressed', 'false'));
     roomSelection.textContent = '';
-    updateRoomControls();
+    roomGuideIntro.hidden = false;
+    roomGuideDiscovery.hidden = true;
+    roomWindow.disabled = true;
   }
+  if (view === 'interior') updateRoomControls();
   (view === 'title' ? start : back).focus();
+}
+
+function showHelp(open) {
+  clearTimeout(helpHideTimer);
+  sceneHelp.hidden = !open;
+  helpToggle.setAttribute('aria-expanded', String(open));
+  handDrag = null;
 }
 
 function placeGlove(glove, x, y, angle = 0, flip = 1) {
@@ -94,7 +121,9 @@ function stopCamera(message = '') {
   }
   Object.values(handGloves).forEach((glove) => { glove.hidden = true; });
   clearHandActions();
-  cameraToggle.textContent = '웹캠켜기';
+  handDrag = null;
+  cameraToggle.textContent = 'ON';
+  cameraToggle.setAttribute('aria-label', '웹캠 켜기');
   cameraToggle.setAttribute('aria-pressed', 'false');
   cameraStatus.textContent = message;
   updatePointer();
@@ -117,8 +146,14 @@ function glovePose(points) {
 
 function updateButtonHighlights() {
   const hands = [...handActions.values()];
+  const wasOverHelp = helpToggle.hasAttribute('data-hand-hover');
   for (const button of gestureButtons) {
     button.toggleAttribute('data-hand-hover', hands.some((hand) => hand.hover === button));
+  }
+  const isOverHelp = helpToggle.hasAttribute('data-hand-hover');
+  if (isOverHelp && !wasOverHelp) showHelp(true);
+  if (!isOverHelp && wasOverHelp) {
+    helpHideTimer = setTimeout(() => showHelp(false), 3000);
   }
 }
 
@@ -130,10 +165,20 @@ function clearHandActions() {
 function trackButtonGesture(glove, x, y, pose) {
   const previous = handActions.get(glove);
   const button = document.elementFromPoint(x, y)?.closest('button');
-  const hover = gestureButtons.includes(button) && !button.disabled
+  let hover = gestureButtons.includes(button) && !button.disabled
     && Number(getComputedStyle(button).opacity) > 0 ? button : null;
+  if (!hover && !sceneMenu.hidden) {
+    const bounds = helpToggle.getBoundingClientRect();
+    if (x >= bounds.left && x <= bounds.right + 32 && y >= bounds.top && y <= bounds.bottom + 28) {
+      hover = helpToggle;
+    }
+  }
   if (!hover) {
     handActions.delete(glove);
+    return null;
+  }
+  if (hover === helpToggle) {
+    handActions.set(glove, { hover, armed: false });
     return null;
   }
   const wasArmed = previous?.hover === hover && previous.armed;
@@ -144,6 +189,7 @@ function trackButtonGesture(glove, x, y, pose) {
 
 function drawHands(result) {
   const visibleGloves = new Set();
+  const pointingHands = [];
   let clickedButton = null;
   result.landmarks.forEach((points, index) => {
     const side = result.handedness[index]?.[0]?.categoryName;
@@ -157,20 +203,15 @@ function drawHands(result) {
     const flip = dx * thumbY - dy * thumbX > 0 ? -1 : 1;
     const pose = glovePose(result.worldLandmarks?.[index] ?? points);
     const palm = { x: (wrist.x + knuckle.x) / 2, y: (wrist.y + knuckle.y) / 2 };
-    const anchor = pose === 'point' ? points[8] : palm;
-    const x = (1 - anchor.x) * innerWidth;
-    const y = anchor.y * innerHeight;
+    const x = (1 - palm.x) * innerWidth;
+    const y = palm.y * innerHeight;
     glove.dataset.pose = pose;
     const source = gloveImages[pose] ?? gloveImages.open;
     if (glove.getAttribute('src') !== source) glove.src = source;
-    // The drawn index finger leans slightly toward the thumb.
-    const angle = pose === 'point'
-      ? Math.atan2((points[5].x - points[8].x) * video.videoWidth,
-        (points[5].y - points[8].y) * video.videoHeight) + 0.17 * flip
-      : Math.atan2(dx, -dy);
-    placeGlove(glove, x, y, angle, flip);
+    placeGlove(glove, x, y, Math.atan2(dx, -dy), flip);
     visibleGloves.add(glove);
-    const clicked = trackButtonGesture(glove, (1 - palm.x) * innerWidth, palm.y * innerHeight, pose);
+    if (pose === 'point') pointingHands.push(x);
+    const clicked = trackButtonGesture(glove, x, y, pose);
     clickedButton ??= clicked;
   });
   for (const glove of Object.values(handGloves)) {
@@ -178,6 +219,13 @@ function drawHands(result) {
     if (glove.hidden) handActions.delete(glove);
   }
   updateButtonHighlights();
+  if (!interior.hidden && sceneHelp.hidden && pointingHands.length === 2) {
+    const center = (pointingHands[0] + pointingHands[1]) / 2;
+    handDrag ??= { center, scrollLeft: roomScroll.scrollLeft };
+    roomScroll.scrollLeft = handDrag.scrollLeft + (handDrag.center - center) * 2;
+  } else {
+    handDrag = null;
+  }
   cameraStatus.textContent = visibleGloves.size === 0 ? '웹캠에 양손을 보여주세요.' : '';
   if (clickedButton) clickedButton.click();
 }
@@ -204,7 +252,8 @@ async function startCamera() {
   }
   const session = { videoTime: -1 };
   cameraSession = session;
-  cameraToggle.textContent = '웹캠끄기';
+  cameraToggle.textContent = 'OFF';
+  cameraToggle.setAttribute('aria-label', '웹캠 끄기');
   cameraToggle.setAttribute('aria-pressed', 'true');
   cameraStatus.textContent = '웹캠과 손 인식을 준비하고 있어요.';
   try {
@@ -249,6 +298,19 @@ async function startCamera() {
 function updateRoomControls() {
   roomControls[0].disabled = roomScroll.scrollLeft <= 1;
   roomControls[1].disabled = roomScroll.scrollLeft + roomScroll.clientWidth >= roomScroll.scrollWidth - 1;
+  if (interior.hidden || !roomGuideDiscovery.hidden) return;
+  if (!roomControls[1].disabled) {
+    clearTimeout(roomDiscoveryTimer);
+    roomDiscoveryTimer = undefined;
+  } else if (roomDiscoveryTimer === undefined) {
+    roomDiscoveryTimer = setTimeout(() => {
+      roomDiscoveryTimer = undefined;
+      if (interior.hidden || !roomControls[1].disabled) return;
+      roomGuideIntro.hidden = true;
+      roomGuideDiscovery.hidden = false;
+      roomWindow.disabled = false;
+    }, 2000);
+  }
 }
 
 function panRoom(direction) {
@@ -262,7 +324,12 @@ roomScroll.addEventListener('scroll', updateRoomControls);
 window.addEventListener('resize', updateRoomControls);
 roomControls.forEach((button) => button.addEventListener('click', () => panRoom(Number(button.dataset.pan))));
 roomObjects.forEach((button) => button.addEventListener('click', () => {
-  roomObjects.forEach((object) => object.setAttribute('aria-pressed', String(object === button)));
+  if (button === roomWindow) {
+    if (!roomWindow.disabled) showView('window');
+    return;
+  }
+  roomObjects.filter((object) => object !== roomWindow)
+    .forEach((object) => object.setAttribute('aria-pressed', String(object === button)));
   roomSelection.textContent = button.getAttribute('aria-label');
 }));
 
@@ -289,9 +356,19 @@ cameraToggle.addEventListener('click', () => {
 window.addEventListener('pagehide', () => stopCamera());
 start.addEventListener('click', () => showView('landscape'));
 door.addEventListener('click', () => showView('interior'));
-back.addEventListener('click', () => showView(interior.hidden ? 'title' : 'landscape'));
+home.addEventListener('click', () => showView('title'));
+back.addEventListener('click', () => {
+  const previousViews = { window: 'interior', interior: 'landscape', landscape: 'title' };
+  showView(previousViews[experience.dataset.view] ?? 'title');
+});
+helpToggle.addEventListener('click', () => {
+  if (!helpToggle.hasAttribute('data-hand-hover')) showHelp(sceneHelp.hidden);
+});
 experience.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && !back.hidden) back.click();
+  if (event.key === 'Escape' && !sceneMenu.hidden) {
+    if (sceneHelp.hidden) back.click();
+    else if (!helpToggle.hasAttribute('data-hand-hover')) showHelp(false);
+  }
   if (!interior.hidden && ['ArrowLeft', 'ArrowRight'].includes(event.key)) {
     event.preventDefault();
     panRoom(event.key === 'ArrowLeft' ? -1 : 1);

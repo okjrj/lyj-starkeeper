@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#001230">
   <title>별 관리인의 하루</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&amp;display=swap">
   <link rel="preload" as="image" href="assets/magic-glove-fist.svg">
   <link rel="preload" as="image" href="assets/magic-glove-point.svg">
   <link rel="stylesheet" href="styles.css">
@@ -55,7 +56,11 @@
           <image href="image/title_full.png" width="1920" height="1080" filter="url(#tree-sky-key)"/>
         </g>
         <foreignObject x="911" y="404" width="128" height="222">
-          <button class="house-door" type="button" aria-label="별 관리인의 집에 들어가기" hidden></button>
+          <button class="house-door" type="button" aria-label="별 관리인의 집에 들어가기" hidden>
+            <svg viewBox="911 404 128 222" aria-hidden="true">
+              <path d="M937 619 L934 456 C934 429 952 408 976 408 C999 408 1014 430 1014 455 L1016 620 Z"/>
+            </svg>
+          </button>
         </foreignObject>
       </svg>
     </div>
@@ -66,7 +71,7 @@
           <button class="room-object" type="button" aria-label="별이 든 리어카" aria-pressed="false" style="left:3.5300%;top:56.1160%;width:22.4407%;height:40.3531%">
             <svg viewBox="70 445 445 320" preserveAspectRatio="none" aria-hidden="true"><path d="M80 564 L111 551 L125 535 L147 534 L166 522 L195 522 L172 501 L209 491 L231 455 L251 483 L289 484 L282 512 L311 510 L327 518 L349 508 L369 516 L391 516 L410 510 L430 526 L447 520 L465 532 L480 536 L503 548 L504 681 L489 694 Q493 715 473 720 L421 732 Q418 754 400 755 Q379 754 376 730 L129 715 Q126 740 108 738 Q89 738 86 711 L79 709 Z"/></svg>
           </button>
-          <button class="room-object" type="button" aria-label="창문" aria-pressed="false" style="left:47.5038%;top:7.3140%;width:15.3807%;height:49.3064%">
+          <button class="room-object room-window" type="button" aria-label="창문" disabled style="left:47.5038%;top:7.3140%;width:15.3807%;height:49.3064%">
             <svg viewBox="942 58 305 391" preserveAspectRatio="none" aria-hidden="true"><path d="M956 95 L965 88 L1218 71 L1230 64 L1240 75 L1231 86 L1231 171 L1238 183 L1231 196 L1234 285 L1238 301 L1230 306 L1223 299 L1224 439 L970 429 L969 101 L961 115 L960 391 L964 411 L957 417 L950 412 L954 391 L954 112 L947 103 Z"/></svg>
           </button>
           <button class="room-object" type="button" aria-label="현관문" aria-pressed="false" style="left:70.8522%;top:2.5221%;width:14.1200%;height:73.1400%">
@@ -74,19 +79,49 @@
           </button>
         </div>
       </div>
+      <div class="room-guide" role="status">
+        <p class="house-message-card room-guide-intro">방을 둘러볼까요? <strong>양손</strong>으로 <strong>검지</strong>를 들고 좌우로 움직이세요.</p>
+        <p class="house-message-card room-guide-discovery" hidden>어라? 그런데 <strong>별 관리인</strong>이 없네요!</p>
+      </div>
       <p class="room-selection" role="status"></p>
       <div class="room-controls">
         <button type="button" data-pan="-1" aria-label="왼쪽 둘러보기">←</button>
         <button type="button" data-pan="1" aria-label="오른쪽 둘러보기">→</button>
       </div>
     </section>
+    <section class="window-view" aria-label="별 관리인의 창가" hidden>
+      <img src="image/window-empty.png" alt="별 장식과 체크무늬 커튼이 있는 창가">
+    </section>
     <section class="title-panel" aria-labelledby="title">
       <h1 id="title"><img src="assets/title-logo.png" alt="별 관리인의 하루"></h1>
-      <p class="instructions">웹캠을 켜고 <strong>두 손에 끼워진 장갑</strong>을 확인하세요.<br>장갑으로 <strong>주먹, 보자기, 검지 들기</strong>를 할 수 있어요.<br>장갑을 버튼 위에 올리고 <strong>주먹을 쥐었다가 펴면 클릭</strong>됩니다.</p>
-      <div class="actions">
-        <button class="camera-toggle" type="button" aria-pressed="false">웹캠켜기</button>
-        <button class="start" type="button"><span>시작하기</span><span aria-hidden="true">→</span></button>
-      </div>
+      <ol class="instructions" role="list">
+        <li>
+          <span class="step-number" aria-hidden="true">1</span>
+          <div class="step-action">
+            <span><strong class="instruction-emphasis">웹캠</strong>을 켜고</span>
+            <button class="camera-toggle" type="button" aria-label="웹캠 켜기" aria-pressed="false">ON</button>
+          </div>
+        </li>
+        <li>
+          <span class="step-number" aria-hidden="true">2</span>
+          <div>
+            <span><strong>두 손</strong>을 들어서 <strong>장갑</strong> 확인하기</span>
+            <p><strong class="instruction-emphasis">주먹, 보자기, 검지 들기</strong>를 할 수 있어요.</p>
+            <div class="pose-guide">
+              <figure><img src="assets/magic-glove-fist.svg" alt=""><figcaption>주먹</figcaption></figure>
+              <figure><img src="assets/magic-glove.svg" alt=""><figcaption>보자기</figcaption></figure>
+              <figure><img src="assets/magic-glove-point.svg" alt=""><figcaption>검지 들기</figcaption></figure>
+            </div>
+          </div>
+        </li>
+        <li>
+          <span class="step-number" aria-hidden="true">3</span>
+          <div class="step-action step-action-start">
+            버튼 위에서 <strong>주먹을 쥐었다가 펴면</strong> 버튼이
+            <span class="start-inline"><strong class="instruction-emphasis">클릭</strong>됩니다! <button class="start" type="button">START</button></span>
+          </div>
+        </li>
+      </ol>
     </section>
     <p class="camera-status" role="status"></p>
     <video class="camera-input" muted playsinline hidden></video>
@@ -95,8 +130,35 @@
       <img class="magic-glove" data-glove="left" src="assets/magic-glove.svg" alt="" hidden>
       <img class="magic-glove" data-glove="right" src="assets/magic-glove.svg" alt="" hidden>
     </div>
-    <p class="house-message" role="status" hidden>이곳은 <strong>별 관리인</strong>의 <strong>집</strong>입니다. 안으로 들어가 볼까요?<br>(<strong>문</strong>을 클릭해 주세요!)</p>
-    <button class="back" type="button" hidden><span aria-hidden="true">←</span><span class="back-label">타이틀로 돌아가기</span></button>
+    <div class="house-message" role="status" hidden>
+      <p class="house-message-card">이곳은 <strong>별 관리인의 집</strong>입니다. 안으로 들어가 볼까요?</p>
+      <p class="house-click-hint">
+        문을 클릭하세요!
+        <span class="house-gesture" role="img" aria-label="주먹을 쥐었다가 펴기">
+          <img src="assets/magic-glove-fist.svg" alt="">
+          <span aria-hidden="true">→</span>
+          <img src="assets/magic-glove.svg" alt="">
+        </span>
+      </p>
+    </div>
+    <div class="scene-menu" hidden>
+      <nav class="scene-menu-buttons" aria-label="장면 메뉴">
+        <button class="home" type="button"><span aria-hidden="true">⌂</span>홈</button>
+        <button class="back" type="button"><span aria-hidden="true">←</span>이전</button>
+        <button class="help-toggle" type="button" aria-expanded="false" aria-controls="scene-help"><span aria-hidden="true">ⓘ</span>도움말</button>
+      </nav>
+      <section class="scene-help" id="scene-help" aria-labelledby="scene-help-title" hidden>
+        <h2 id="scene-help-title">도움말</h2>
+        <div class="help-gesture">
+          <div class="house-gesture" aria-hidden="true"><img src="assets/magic-glove-fist.svg" alt="">→<img src="assets/magic-glove.svg" alt=""></div>
+          <p><strong>클릭</strong><br>버튼 위에서 주먹을 쥐었다 펴세요.</p>
+        </div>
+        <div class="help-gesture">
+          <div class="house-gesture" aria-hidden="true"><img src="assets/magic-glove-point.svg" alt="">↔<img src="assets/magic-glove-point.svg" alt=""></div>
+          <p><strong>이동</strong><br>양손의 검지를 펴고 좌우로 움직이세요.</p>
+        </div>
+      </section>
+    </div>
   </main>
 </body>
 </html>
