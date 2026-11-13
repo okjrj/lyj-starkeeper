@@ -31,6 +31,8 @@
 
 ## Windows 전시 EXE 빌드
 
+[전시 운영 폴더](exhibition/)에서 시작·종료 스크립트와 빌드 소스를 확인할 수 있다. 이미 빌드된 EXE는 [GitHub Releases](https://github.com/okjrj/lyj-starkeeper/releases)에서 받는다.
+
 Chrome이 설치된 Windows 10/11에서 저장소 루트를 열고 다음 명령을 실행한다.
 
 ```powershell
