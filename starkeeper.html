@@ -92,19 +92,25 @@
     <section class="sky-view" aria-label="밤하늘과 사다리" hidden>
       <div class="sky-stars" aria-hidden="true"></div>
       <div class="sky-ladder" aria-label="사다리"></div>
+      <div class="sky-grip-glow" aria-hidden="true"></div>
       <button class="sky-placement" type="button" aria-label="별을 이곳에 걸기" hidden></button>
-      <img class="sky-moon" src="assets/moon-scene.webp" alt="별이 반짝이는 밤하늘, 초승달까지 이어진 사다리" hidden>
-      <svg class="moon-hit-area" viewBox="0 0 960 540" preserveAspectRatio="xMidYMid slice" hidden>
+      <div class="moon-panorama" hidden>
+      <div class="moon-sky moon-sky-left" aria-hidden="true"></div>
+      <div class="moon-sky moon-sky-right" aria-hidden="true"></div>
+      <img class="sky-moon" src="assets/moon-scene.webp" alt="별이 반짝이는 밤하늘, 초승달까지 이어진 사다리">
+      <svg class="moon-hit-area" viewBox="0 0 960 540" preserveAspectRatio="xMidYMid slice">
         <foreignObject x="359" y="26" width="337" height="329">
           <button class="moon-open" type="button" aria-label="달 선택하기">
             <svg viewBox="359 26 337 329" aria-hidden="true"><path d="M488 34 C593 6 689 85 692 181 C697 278 621 350 535 352 C457 356 392 306 362 249 C409 300 471 319 531 306 C576 296 612 269 609 237 C609 224 607 217 609 211 C592 205 605 198 615 190 C634 153 602 47 488 34 Z"/></svg>
           </button>
         </foreignObject>
       </svg>
+      </div>
       <div class="house-message-card sky-guide" role="status">
         <p class="sky-guide-title"></p>
-        <p class="sky-guide-detail" hidden><strong>별 집기</strong> · 빈손을 바구니 가까이 가져가 주먹을 쥐거나 잠깐 멈춰 보세요.<br><strong>별 걸기</strong> · 별을 걸고 싶은 곳으로 손을 옮긴 뒤 손을 펴세요.</p>
+        <p class="sky-guide-detail" hidden><strong>별 집기</strong> · 빈손을 바구니 가까이 가져가 주먹을 3초간 쥐세요.<br><strong>별 걸기</strong> · 주먹을 쥔 채 원하는 곳으로 옮긴 뒤 손을 펴세요.</p>
       </div>
+      <p class="moon-look-guide" hidden>구경을 마쳤다면 달을 눌러주세요</p>
     </section>
     <section class="moon-finale" aria-labelledby="moon-finale-title" hidden>
       <h2 class="house-message-card moon-finale-guide" id="moon-finale-title">오늘 업무를 모두 마치셨군요! 당신은 진정한 <strong>“별 관리인”</strong>이 되었어요.</h2>
@@ -209,9 +215,22 @@
         <button class="sun-return house-message-card" type="button" hidden>해를 흔들면서 뒤로 두 발자국 가보세요.</button>
       </div>
     </section>
-    <aside class="pinned-note" aria-label="데오의 별 관리 방법" hidden>
-      <h2>데오의 별 관리 방법</h2>
-    </aside>
+    <div class="corner-guides">
+      <div class="click-guide" aria-label="클릭: 보자기, 주먹, 보자기">
+        <strong aria-hidden="true">클릭</strong>
+        <span aria-hidden="true">:</span>
+        <div class="click-poses" aria-hidden="true">
+          <img src="assets/magic-glove.svg" alt="">
+          <span>→</span>
+          <img src="assets/magic-glove-fist.svg" alt="">
+          <span>→</span>
+          <img src="assets/magic-glove.svg" alt="">
+        </div>
+      </div>
+      <aside class="pinned-note" aria-label="데오의 별 관리 방법" hidden>
+        <h2>데오의 별 관리 방법</h2>
+      </aside>
+    </div>
     <section class="title-panel" aria-labelledby="title">
       <h1 id="title"><img src="assets/title-logo.png" alt="별 관리인의 하루"></h1>
       <ol class="instructions" role="list">

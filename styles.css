@@ -364,11 +364,28 @@ h1 img { display: block; width: 100%; height: auto; }
   animation: reveal-back .35s both;
 }
 .sun-return:focus-visible { outline-color: #ffe39a; }
-.pinned-note {
+.corner-guides {
   position: absolute;
-  z-index: 1;
+  z-index: 2;
   top: clamp(10px, 3svh, 24px);
   left: clamp(12px, 3vw, 36px);
+  display: grid;
+  justify-items: start;
+  gap: 7px;
+  pointer-events: none;
+}
+.click-guide, .click-poses { display: flex; align-items: center; gap: 5px; }
+.click-guide {
+  padding: 5px 10px;
+  border: 1px solid #e6c68985;
+  border-radius: 8px;
+  background: #101d36ed;
+  color: #fff1c7;
+  font-size: .85rem;
+}
+.click-poses img { width: 23px; height: 25px; object-fit: contain; }
+.title-panel { margin-top: calc(clamp(10px, 3svh, 24px) + var(--corner-guide-height, 37px)); }
+.pinned-note {
   max-width: calc(100vw - 24px);
   padding: 10px 14px;
   border: 1px solid #e6c689;
@@ -461,6 +478,8 @@ h1 img { display: block; width: 100%; height: auto; }
 .falling-basket[data-caught] { pointer-events: none; }
 .sky-view, .sky-stars, .sky-placement { position: absolute; inset: 0; width: 100%; height: 100%; }
 .sky-view { overflow: hidden; background: #091b35; animation: reveal-back .45s both; }
+.sky-view[data-stage="climb"] { touch-action: none; }
+.sky-ladder[data-pulling] { transition-duration: .08s; }
 .sky-placement { padding: 0; border: 0; background: transparent; }
 .sky-guide {
   position: absolute;
@@ -471,7 +490,9 @@ h1 img { display: block; width: 100%; height: auto; }
   max-width: calc(100% - 32px);
   text-align: center;
   pointer-events: none;
+  transition: top .4s ease, translate .4s ease, margin-top .4s ease;
 }
+.sky-view[data-star-intro] .sky-guide { top: 50%; translate: -50% -50%; margin-top: 0; }
 .sky-guide p { margin: 0; }
 .sky-guide-detail { max-width: 42em; padding-top: 5px; font-size: .88em; }
 .sky-ladder {
@@ -502,24 +523,43 @@ h1 img { display: block; width: 100%; height: auto; }
   background: linear-gradient(#e0bc82, #8a633f);
   box-shadow: 0 3px 4px #0007;
 }
-.sky-rung[aria-current="step"] {
-  --rung-reach: clamp(58px, 13vw, 170px);
-  --rung-hit-height: clamp(128px, 24svh, 230px);
-  z-index: 1;
-  inset-inline: calc(-1 * var(--rung-reach));
-  height: var(--rung-hit-height);
-  margin-bottom: calc(23px - var(--rung-hit-height) / 2);
+.sky-grip-glow {
+  position: absolute;
+  top: 29%;
+  left: 50%;
+  width: clamp(105px, 19vw, 235px);
+  height: 36px;
+  translate: -50% -50%;
+  background: radial-gradient(ellipse at center, #fff1b6eb, #ffc56bb0 38%, transparent 74%);
+  filter: drop-shadow(0 0 19px #ffbd63);
+  pointer-events: none;
 }
-.sky-rung[aria-current="step"]::before {
-  inset: calc(50% - 5px) var(--rung-reach);
-  background: #fff0b9;
-  box-shadow: 0 0 9px 4px #ffe4a7, 0 0 24px 10px #ffcb6bc2, 0 0 48px 18px #ffad4c70;
-}
+.sky-view:not([data-stage="climb"]) .sky-grip-glow { visibility: hidden; }
 .sky-view[data-stage="place"] .sky-ladder { pointer-events: none; }
 .sky-view[data-stage="moon"] .sky-ladder { visibility: hidden; }
 .sky-view[data-stage="moon"] .sky-stars { z-index: 1; pointer-events: none; }
-.sky-view[data-stage="moon"] .sky-star[data-small] { visibility: hidden; }
+.sky-view[data-stage="moon"] .sky-stars > .sky-star[data-small] { visibility: hidden; }
 .sky-view[data-stage="moon"] .sky-guide { z-index: 1; }
+.moon-panorama { position: absolute; inset: 0; translate: var(--moon-pan, 0px) 0; }
+.moon-sky { position: absolute; inset-block: 0; width: 110%; background: #041a39; }
+.moon-sky-left { right: 96%; }
+.moon-sky-right { left: 96%; }
+.moon-sky .sky-star { color: var(--side-star-color, #fff1bf); }
+.moon-look-guide {
+  position: absolute;
+  z-index: 1;
+  top: calc(4svh + var(--moon-guide-height, 55px) + 9px);
+  left: 50%;
+  translate: -50%;
+  width: max-content;
+  max-width: calc(100% - 28px);
+  margin: 0;
+  color: #fff;
+  text-align: center;
+  text-shadow: 0 2px 6px #000;
+  pointer-events: none;
+}
+.sky-view[data-stage="moon"] { touch-action: pan-y; }
 .sky-star, .held-star {
   position: absolute;
   color: #ffdf88;
@@ -538,6 +578,7 @@ h1 img { display: block; width: 100%; height: auto; }
   height: 100%;
   object-fit: cover;
   object-position: 50% 50%;
+  mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
   animation: moon-arrive .9s ease both;
   pointer-events: none;
 }
@@ -616,9 +657,20 @@ h1 img { display: block; width: 100%; height: auto; }
   word-break: keep-all;
 }
 @media (max-width: 700px) {
-  [data-view="window"] .window-guide { inset: 112px 8px auto; }
-  .cart-checklist { inset: 112px 8px auto; }
+  [data-view="window"] .window-guide, .cart-checklist {
+    inset: calc(clamp(10px, 3svh, 24px) + var(--corner-guide-height, 37px) + 8px) 8px auto;
+  }
 }
+@media (max-width: 1080px) {
+  .moon-look-guide { margin-top: calc(var(--corner-guide-height, 37px) + 8px); }
+  .room-guide, .house-message, .sky-guide, .moon-finale-guide {
+    margin-top: calc(var(--corner-guide-height, 37px) + 8px);
+  }
+}
+@media (min-width: 701px) {
+  [data-view="window"] .window-guide, .cart-checklist { inset-inline-start: min(390px, 46vw); }
+}
+.experience:has(.ending:not([hidden])) .corner-guides { z-index: 6; }
 @media (max-aspect-ratio: 1/1) {
   .night-yard { overflow: hidden; }
   .night-yard-art { width: 150%; left: -5%; }
@@ -755,8 +807,6 @@ h1 img { display: block; width: 100%; height: auto; }
 }
 button[data-hand-hover] { outline: 2px solid #fff; outline-offset: 4px; }
 button[data-hand-hover] { box-shadow: inset 0 -3px #92abd3; }
-.sky-rung:is(:focus-visible, [data-hand-hover]) { outline: none; box-shadow: none; }
-.sky-rung[aria-current="step"]:is(:focus-visible, :hover, [data-hand-hover])::before { filter: brightness(1.2); }
 .house-door:is(:focus-visible, [data-hand-hover]) { outline: none; box-shadow: none; }
 [data-view]:not([data-view="title"]) .title-panel { opacity: 0; transform: translateX(-105%); pointer-events: none; }
 [data-view]:not([data-view="title"]) .camera-status { display: none; }

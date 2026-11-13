@@ -44,9 +44,9 @@ const skyStars = skyView.querySelector('.sky-stars');
 const skyGuide = skyView.querySelector('.sky-guide-title');
 const skyGuideDetail = skyView.querySelector('.sky-guide-detail');
 const skyPlacement = skyView.querySelector('.sky-placement');
-const skyMoon = skyView.querySelector('.sky-moon');
+const moonPanorama = skyView.querySelector('.moon-panorama');
+const moonLookGuide = skyView.querySelector('.moon-look-guide');
 const moonOpen = skyView.querySelector('.moon-open');
-const moonHitArea = skyView.querySelector('.moon-hit-area');
 const moonFinale = document.querySelector('.moon-finale');
 const replayFilm = moonFinale.querySelector('.replay-film');
 const finishGame = moonFinale.querySelector('.finish-game');
@@ -56,15 +56,13 @@ const exitFilm = ending.querySelector('.exit-film');
 let endingReturning = false;
 let endingTimer;
 const heldStar = document.querySelector('.held-star');
-const skyRungs = Array.from({ length: 8 }, (_, index) => {
-  const rung = document.createElement('button');
-  rung.type = 'button';
+for (let index = 0; index < 12; index += 1) {
+  const rung = document.createElement('span');
   rung.className = 'sky-rung';
   rung.setAttribute('aria-label', `사다리 ${index + 1}번째 발판`);
   rung.style.setProperty('--rung', `${18 + index * 19}svh`);
   skyLadder.append(rung);
-  return rung;
-});
+}
 const roomControls = [...interior.querySelectorAll('[data-pan]')];
 const roomFeedback = interior.querySelector('.room-feedback');
 const roomGuideIntro = interior.querySelector('.room-guide-intro');
@@ -85,7 +83,7 @@ const gloveImages = {
 };
 const fingerJoints = [[5, 6, 8], [9, 10, 12], [13, 14, 16], [17, 18, 20]];
 const handActions = new Map();
-const gestureButtons = [cameraToggle, start, door, home, back, helpToggle, ...roomObjects, ...roomControls, ...windowChecklist, ...yardObjects, ...cartChecklist, ...skyRungs, moonOpen, replayFilm, finishGame, exitFilm, noteInstructions, noteClose];
+const gestureButtons = [cameraToggle, start, door, home, back, helpToggle, ...roomObjects, ...roomControls, ...windowChecklist, ...yardObjects, ...cartChecklist, moonOpen, replayFilm, finishGame, exitFilm, noteInstructions, noteClose];
 let handDrag = null;
 let helpHideTimer;
 let roomDiscoveryTimer;
@@ -114,27 +112,39 @@ let basketCaught = false;
 let basketStarCount = 3;
 let climbStep = 0;
 let climbTimer;
+let climbGrip;
+let climbProgress = 0;
 let skyIdleTimer;
 let starHolder;
 let starReach;
+let starIntroTimer;
+let moonPan = 0;
+let moonDrag;
 let cartStep = 0;
 let cartReturnTimer;
 let fillingMotion;
 let basketFillTimer;
 let lastFillChime = 0;
-const cartHints = ['해를 별 가까이에 대어 주세요.', '떨어지는 바구니를 잡아주세요.', '두 팔을 활짝 벌려 별을 가득 담아 주세요!'];
+const cartHints = ['해를 별 가까이에 대어 주세요.', '떨어지는 바구니를 잡아주세요.', '두 팔을 활짝 벌려 흔들며 별을 가득 담아 주세요!'];
 const windowHints = [
   '두 손의 검지를 들고 커튼을 양옆으로 벌려 주세요.',
   '작은 줄 위에서 주먹을 쥐고 아래로 당겨 주세요.',
   '해 위에서 검지를 들거나 주먹을 쥐어 해를 가져가세요.',
 ];
 let audioContext;
+let audioResume;
 const chimes = {
   selection: [[880, 0, .19, .033], [1174.66, .035, .26, .024]],
   guide: [[523.25, 0, .52, .054], [783.99, .09, .54, .044], [1046.5, .18, .72, .033]],
   discovery: [[698.46, 0, .36, .062], [1046.5, .12, .44, .055], [1396.91, .28, .68, .048]],
   stars: [[659.25, 0, .7, .05], [987.77, .12, .68, .045], [1318.51, .24, .82, .042], [1975.53, .39, .88, .03]],
   note: [[659.25, 0, .52, .044], [880, .08, .59, .035], [1318.51, .18, .74, .028]],
+  travel: [[392, 0, .52, .048], [587.33, .07, .6, .042], [880, .15, .62, .03]],
+  glide: [[587.33, 0, .19, .025], [783.99, .045, .28, .022]],
+  rung: [[440, 0, .25, .045], [659.25, .07, .35, .032]],
+  moonArrival: [[392, 0, 1.75, .039], [587.33, .13, 1.65, .038],
+    [739.99, .28, 1.55, .032], [880, .48, 1.4, .028],
+    [1174.66, .74, 1.25, .022], [880, 1, 1.15, .014]],
 };
 const openingMusicVolume = .6;
 const visionPackage = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.32';
@@ -146,6 +156,27 @@ const pinnedSteps = noteMethod.cloneNode(true);
 pinnedSteps.removeAttribute('id');
 pinnedSteps.hidden = false;
 pinnedNote.append(pinnedSteps);
+const cornerGuides = document.querySelector('.corner-guides');
+new ResizeObserver(() => {
+  experience.style.setProperty('--corner-guide-height', `${cornerGuides.offsetHeight}px`);
+}).observe(cornerGuides);
+new ResizeObserver(([entry]) => {
+  skyView.style.setProperty('--moon-guide-height', `${entry.target.offsetHeight}px`);
+}).observe(skyGuide.parentElement);
+for (const [side, layer] of [...moonPanorama.querySelectorAll('.moon-sky')].entries()) {
+  for (let index = 0; index < 105; index += 1) {
+    const star = document.createElement('span');
+    star.className = 'sky-star';
+    star.dataset.small = '';
+    star.textContent = index % 7 === 0 ? '✦' : '•';
+    star.style.setProperty('--x', `${2 + (index * 37.19 + index * index * .47 + side * 18) % 96}%`);
+    star.style.setProperty('--y', `${2 + (index * 53.31 + index * index * .29) % 96}%`);
+    star.style.setProperty('--size', `${3 + index % (index % 7 === 0 ? 15 : 6)}px`);
+    star.style.setProperty('--duration', `${1 + index % 9 * .19}s`);
+    star.style.setProperty('--delay', `${index % 14 * -.16}s`);
+    layer.append(star);
+  }
+}
 for (const [x, y, size, delay] of [[563, 369, 20, 0], [670, 269, 24, .35], [748, 368, 17, .7],
   [822, 191, 24, .22], [934, 330, 30, .48], [1030, 233, 19, .8],
   [1127, 301, 25, .12], [1245, 358, 18, .66], [1310, 264, 15, .92]]) {
@@ -170,7 +201,10 @@ for (let index = 0; index < 43; index += 1) {
 }
 
 function playChime(name) {
-  if (audioContext?.state !== 'running') return;
+  if (audioContext?.state !== 'running') {
+    audioResume?.then(() => playChime(name), () => {});
+    return;
+  }
   const startTime = audioContext.currentTime + .01;
   for (const [pitch, delay, duration, volume] of chimes[name]) {
     for (const [ratio, strength] of [[1, 1], [2.01, .19]]) {
@@ -220,14 +254,20 @@ openingMusic.volume = openingMusicVolume;
 startOpeningMusic();
 for (const event of ['pointerdown', 'keydown', 'click']) {
   experience.addEventListener(event, startOpeningMusic, { capture: true });
+  experience.addEventListener(event, () => {
+    if (!window.AudioContext) return;
+    audioContext ??= new AudioContext();
+    if (audioContext.state !== 'running' && !audioResume) {
+      audioResume = audioContext.resume().finally(() => { audioResume = undefined; });
+      audioResume.catch(() => {});
+    }
+  }, { capture: true });
 }
 
 experience.addEventListener('click', (event) => {
   const button = event.target.closest('button');
-  if (!button || button === door || button.disabled || !window.AudioContext) return;
-  audioContext ??= new AudioContext();
-  if (audioContext.state === 'running') playChime('selection');
-  else audioContext.resume().then(() => playChime('selection')).catch(() => {});
+  if (!button || button === door || button.disabled) return;
+  playChime('selection');
 }, { capture: true });
 
 function showView(view) {
@@ -244,6 +284,7 @@ function showView(view) {
   handDrag = null;
   showHelp(false);
   experience.dataset.view = view;
+  if (view !== previousView) playChime('travel');
   titlePanel.inert = view !== 'title';
   sceneMenu.hidden = view === 'title';
   door.hidden = houseMessage.hidden = view !== 'landscape';
@@ -256,7 +297,13 @@ function showView(view) {
   skyView.hidden = view !== 'sky';
   clearTimeout(climbTimer);
   climbTimer = undefined;
+  climbGrip = undefined;
+  climbProgress = 0;
+  delete skyLadder.dataset.pulling;
   clearTimeout(skyIdleTimer);
+  clearTimeout(starIntroTimer);
+  starIntroTimer = undefined;
+  delete skyView.dataset.starIntro;
   if (view !== 'sky') clearHeldStar();
   clearTimeout(yardZoomTimer);
   delete nightYard.dataset.zoom;
@@ -294,7 +341,6 @@ function showView(view) {
     roomScroll.scrollLeft = 0;
     roomGuideIntro.hidden = false;
     roomGuideDiscovery.hidden = true;
-    playChime('guide');
     roomDiscoveryTimer = setTimeout(showRoomDiscovery, 7000);
   }
   pinnedNote.hidden = roomStage !== 'note-read' || !['interior', 'window', 'yard', 'cart'].includes(view);
@@ -476,11 +522,23 @@ function drawHands(result) {
     checkBasketHands(sceneHands);
     if (cartStep === 2) fillBasketFromMotion(sceneHands);
   }
-  if (!skyView.hidden) updateSkyHands(sceneHands);
+  if (!skyView.hidden) {
+    if (skyView.dataset.stage === 'climb') {
+      const fist = sceneHands.find(({ glove, pose }) => pose === 'fist' && (!climbGrip || climbGrip.input === glove));
+      if (fist) pullLadder(fist.glove, fist.y);
+      else if (typeof climbGrip?.input !== 'number') releaseLadder();
+    } else if (skyView.dataset.stage === 'moon') {
+      const point = sceneHands.find(({ glove, pose }) => pose === 'point' && (!moonDrag || moonDrag.input === glove));
+      if (point && moonFinale.hidden) panMoonWithInput(point.glove, point.tipX);
+      else if (typeof moonDrag?.input !== 'number') moonDrag = undefined;
+    } else updateSkyHands(sceneHands);
+  }
   if (!interior.hidden && noteOverlay.hidden && sceneHelp.hidden && pointingHands.length === 2) {
     const center = (pointingHands[0] + pointingHands[1]) / 2;
     handDrag ??= { center, scrollLeft: roomScroll.scrollLeft };
+    const previousScroll = roomScroll.scrollLeft;
     roomScroll.scrollLeft = handDrag.scrollLeft + (handDrag.center - center) * 2;
+    playPanCue(handDrag, roomScroll.scrollLeft !== previousScroll);
   } else {
     handDrag = null;
   }
@@ -738,30 +796,56 @@ function renderSkyStage() {
   const stage = climbStep >= 8 ? 'moon' : climbStep === 4 && basketStarCount > 0 ? 'place' : 'climb';
   skyView.dataset.stage = stage;
   skyPlacement.hidden = stage !== 'place';
-  skyMoon.hidden = stage !== 'moon';
-  moonHitArea.toggleAttribute('hidden', stage !== 'moon');
+  moonPanorama.hidden = moonLookGuide.hidden = stage !== 'moon';
+  moonDrag = undefined;
+  if (stage === 'moon') setMoonPan(0);
   skyGuideDetail.hidden = stage !== 'place';
   skyLadder.style.setProperty('--climb', `${climbStep * 19}svh`);
-  for (const [index, rung] of skyRungs.entries()) {
-    rung.tabIndex = stage === 'climb' && index === climbStep ? 0 : -1;
-    if (stage === 'climb' && index === climbStep) rung.setAttribute('aria-current', 'step');
-    else rung.removeAttribute('aria-current');
-  }
   if (stage === 'climb' && climbStep !== 4) {
-    showLadderGuide();
+    skyGuide.replaceChildren('사다리를 올라가 볼까요?', document.createElement('br'),
+      '사다리 위쪽을 잡고 아래로 당겨 주세요.');
   } else {
-    skyGuide.textContent = stage === 'moon' ? '달에 도착했어요! 달을 눌러 주세요.'
+    skyGuide.textContent = stage === 'moon' ? '우와! 밤하늘에 별이 가득 찼어요!'
       : stage === 'place' ? '하늘에 별을 배치해 주세요'
       : '별을 모두 걸었어요! 확인하기 위해 사다리를 더 올라가 볼까요?';
   }
-  scheduleSkyAssist();
+  if (stage === 'place') {
+    clearTimeout(skyIdleTimer);
+    skyView.dataset.starIntro = '';
+    starIntroTimer = setTimeout(() => {
+      delete skyView.dataset.starIntro;
+      starIntroTimer = setTimeout(() => {
+        starIntroTimer = undefined;
+        scheduleSkyAssist();
+      }, 400);
+    }, 3000);
+  } else scheduleSkyAssist();
 }
 
-function showLadderGuide() {
-  const highlight = document.createElement('strong');
-  highlight.textContent = '빛나는 발판';
-  skyGuide.replaceChildren('사다리를 올라가 볼까요?', document.createElement('br'),
-    highlight, '을 아래에서부터 차례대로 눌러 주세요.');
+function setMoonPan(offset) {
+  const limit = skyView.clientWidth * .88;
+  moonPan = Math.max(-limit, Math.min(limit, offset));
+  moonPanorama.style.setProperty('--moon-pan', `${moonPan}px`);
+  skyStars.style.translate = `${moonPan}px 0`;
+}
+
+function panMoonWithInput(input, x) {
+  if (moonDrag?.input !== input) {
+    moonDrag = { input, x, offset: moonPan };
+    return;
+  }
+  const delta = x - moonDrag.x;
+  if (Math.abs(delta) >= 6) {
+    const previousOffset = moonPan;
+    setMoonPan(moonDrag.offset + delta * 1.55);
+    playPanCue(moonDrag, moonPan !== previousOffset);
+  }
+}
+
+function playPanCue(drag, moved) {
+  if (!moved || drag.playedCue) return;
+  drag.playedCue = true;
+  playChime('glide');
 }
 
 function scheduleSkyAssist() {
@@ -781,13 +865,41 @@ function scheduleSkyAssist() {
 function climbNextRung() {
   if (skyView.hidden || skyView.dataset.stage !== 'climb' || climbTimer) return;
   clearTimeout(skyIdleTimer);
+  releaseLadder();
+  climbProgress = 0;
   climbStep += 1;
+  playChime('rung');
   skyLadder.style.setProperty('--climb', `${climbStep * 19}svh`);
   climbTimer = setTimeout(() => {
     climbTimer = undefined;
     renderSkyStage();
-    if (climbStep === 4 || climbStep === 8) playChime('discovery');
+    if (climbStep === 4) playChime('discovery');
+    if (climbStep === 8) playChime('moonArrival');
   }, 620);
+}
+
+function releaseLadder() {
+  climbGrip = undefined;
+  delete skyLadder.dataset.pulling;
+}
+
+function pullLadder(input, y) {
+  if (skyView.hidden || skyView.dataset.stage !== 'climb' || climbTimer) return;
+  if (climbGrip?.input !== input) {
+    climbGrip = { input, y };
+    return;
+  }
+  const distance = y - climbGrip.y;
+  if (distance < 4) return;
+  climbGrip.y = y;
+  climbProgress += distance / Math.max(64, innerHeight * .14);
+  if (climbProgress >= 1) {
+    climbNextRung();
+    return;
+  }
+  skyLadder.dataset.pulling = '';
+  playPanCue(climbGrip, true);
+  skyLadder.style.setProperty('--climb', `${(climbStep + climbProgress) * 19}svh`);
 }
 
 function placeHeldStar(x, y) {
@@ -841,7 +953,7 @@ function hangSkyStar(x, y) {
 }
 
 function updateSkyHands(hands) {
-  if (skyView.dataset.stage !== 'place') return;
+  if (skyView.dataset.stage !== 'place' || starIntroTimer !== undefined) return;
   if (starHolder === pointerGlove) return;
   if (starHolder) {
     const hand = hands.find(({ glove }) => glove === starHolder);
@@ -850,16 +962,16 @@ function updateSkyHands(hands) {
       return;
     }
     const { x, y, pose } = hand;
-    if ((pose === 'open' || pose === 'point') && (fallingBasket.hidden || !nearWindowTarget(fallingBasket, x, y, -8))) {
+    if (pose === 'open') {
       hangSkyStar(x, y);
     }
   } else {
-    const hand = !fallingBasket.hidden && hands.find(({ glove, x, y, tipX, tipY }) => glove !== basketHolder
+    const hand = !fallingBasket.hidden && hands.find(({ glove, pose, x, y, tipX, tipY }) => glove !== basketHolder && pose === 'fist'
       && (nearWindowTarget(fallingBasket, x, y, 76) || nearWindowTarget(fallingBasket, tipX, tipY, 55)));
     if (hand) {
       const now = performance.now();
       if (starReach?.glove !== hand.glove) starReach = { glove: hand.glove, time: now };
-      if (hand.pose === 'fist' || now - starReach.time >= 500) pickBasketStar(hand.glove, hand.x, hand.y);
+      if (now - starReach.time >= 3000) pickBasketStar(hand.glove, hand.x, hand.y);
     } else starReach = undefined;
   }
 }
@@ -875,7 +987,6 @@ function pickUpSun(glove, x, y) {
 function returnWithSun() {
   if (windowView.hidden || !sunHolder || windowStep !== 3) return;
   showView('interior');
-  playChime('discovery');
 }
 
 function detectSunShake(hand, time) {
@@ -994,6 +1105,7 @@ async function startCamera() {
       return;
     }
     session.landmarker = landmarker;
+    playChime('discovery');
     updatePointer();
     trackHands(session);
   } catch (error) {
@@ -1056,6 +1168,8 @@ function setNoteOpen(open) {
 }
 
 function panRoom(direction) {
+  const maxScroll = roomScroll.scrollWidth - roomScroll.clientWidth;
+  if (direction < 0 ? roomScroll.scrollLeft > 1 : roomScroll.scrollLeft < maxScroll - 1) playChime('glide');
   roomScroll.scrollBy({
     left: direction * roomScroll.clientWidth * 0.75,
     behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
@@ -1133,18 +1247,28 @@ for (const object of yardObjects) {
     yardFeedbackTimer = setTimeout(() => { yardFeedback.hidden = true; }, 2500);
   });
 }
-for (const [index, rung] of skyRungs.entries()) {
-  rung.addEventListener('click', () => {
-    if (skyView.dataset.stage !== 'climb' || climbTimer) return;
-    if (index !== climbStep) {
-      showLadderGuide();
-      return;
-    }
-    climbNextRung();
+skyView.addEventListener('pointerdown', (event) => {
+  if (skyView.dataset.stage === 'moon' && event.button === 0 && !event.target.closest('.moon-open')) {
+    skyView.setPointerCapture(event.pointerId);
+    panMoonWithInput(event.pointerId, event.clientX);
+    return;
+  }
+  if (event.button !== 0 || cameraSession?.landmarker || skyView.dataset.stage !== 'climb' || climbTimer) return;
+  skyView.setPointerCapture(event.pointerId);
+  pullLadder(event.pointerId, event.clientY);
+});
+skyView.addEventListener('pointermove', (event) => {
+  if (moonDrag?.input === event.pointerId) panMoonWithInput(event.pointerId, event.clientX);
+  if (climbGrip?.input === event.pointerId) pullLadder(event.pointerId, event.clientY);
+});
+for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+  skyView.addEventListener(type, (event) => {
+    if (moonDrag?.input === event.pointerId) moonDrag = undefined;
+    if (climbGrip?.input === event.pointerId) releaseLadder();
   });
 }
 skyPlacement.addEventListener('click', (event) => {
-  if (cameraSession?.landmarker || !basketCaught) return;
+  if (cameraSession?.landmarker || !basketCaught || starIntroTimer !== undefined) return;
   const x = event.detail ? event.clientX : innerWidth * (.25 + (3 - basketStarCount) * .24);
   const y = event.detail ? event.clientY : innerHeight * .38;
   if (starHolder) hangSkyStar(x, y);
@@ -1160,7 +1284,7 @@ function closeMoonFinale() {
 }
 
 moonOpen.addEventListener('click', () => {
-  if (skyView.hidden || skyMoon.hidden || !ending.hidden) return;
+  if (skyView.hidden || moonPanorama.hidden || !ending.hidden) return;
   moonFinale.hidden = false;
   skyView.inert = sceneMenu.inert = true;
   showHelp(false);
@@ -1193,6 +1317,7 @@ function returnFromEnding() {
 function startEnding(withFilm) {
   if (moonFinale.hidden || !ending.hidden) return;
   ending.hidden = false;
+  if (!withFilm) playChime('travel');
   moonFinale.inert = true;
   endingFilm.hidden = !withFilm;
   exitFilm.hidden = !withFilm;
@@ -1294,7 +1419,9 @@ roomScroll.addEventListener('pointermove', (event) => {
   const distance = event.clientX - roomDrag.x;
   if (!roomScroll.hasPointerCapture(event.pointerId) && Math.abs(distance) < 6) return;
   roomScroll.setPointerCapture(event.pointerId);
+  const previousScroll = roomScroll.scrollLeft;
   roomScroll.scrollLeft = roomDrag.scrollLeft - distance;
+  playPanCue(roomDrag, roomScroll.scrollLeft !== previousScroll);
 });
 for (const event of ['pointerup', 'pointercancel', 'lostpointercapture']) {
   roomScroll.addEventListener(event, () => { roomDrag = null; });
