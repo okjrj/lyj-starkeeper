@@ -52,7 +52,9 @@ const replayFilm = moonFinale.querySelector('.replay-film');
 const finishGame = moonFinale.querySelector('.finish-game');
 const ending = document.querySelector('.ending');
 const endingFilm = ending.querySelector('.ending-film');
+const exitFilm = ending.querySelector('.exit-film');
 let endingReturning = false;
+let endingTimer;
 const heldStar = document.querySelector('.held-star');
 const skyRungs = Array.from({ length: 8 }, (_, index) => {
   const rung = document.createElement('button');
@@ -83,7 +85,7 @@ const gloveImages = {
 };
 const fingerJoints = [[5, 6, 8], [9, 10, 12], [13, 14, 16], [17, 18, 20]];
 const handActions = new Map();
-const gestureButtons = [cameraToggle, start, door, home, back, helpToggle, ...roomObjects, ...roomControls, ...windowChecklist, ...yardObjects, ...cartChecklist, ...skyRungs, moonOpen, replayFilm, finishGame, noteInstructions, noteClose];
+const gestureButtons = [cameraToggle, start, door, home, back, helpToggle, ...roomObjects, ...roomControls, ...windowChecklist, ...yardObjects, ...cartChecklist, ...skyRungs, moonOpen, replayFilm, finishGame, exitFilm, noteInstructions, noteClose];
 let handDrag = null;
 let helpHideTimer;
 let roomDiscoveryTimer;
@@ -1143,9 +1145,12 @@ moonOpen.addEventListener('click', () => {
 
 function returnFromEnding() {
   if (ending.hidden || endingReturning) return;
+  clearTimeout(endingTimer);
   endingReturning = true;
   endingFilm.pause();
   endingFilm.hidden = true;
+  exitFilm.hidden = true;
+  stopCamera();
   showView('title');
   ending.dataset.returning = '';
   setTimeout(() => {
@@ -1164,18 +1169,27 @@ function startEnding(withFilm) {
   ending.hidden = false;
   moonFinale.inert = true;
   endingFilm.hidden = !withFilm;
-  stopCamera();
+  exitFilm.hidden = !withFilm;
+  if (!withFilm) stopCamera();
   pointerEvent = null;
   updatePointer();
   if (withFilm) {
-    endingFilm.play().catch(() => setTimeout(returnFromEnding, 1300));
+    exitFilm.focus();
+    endingFilm.play().catch(scheduleEndingReturn);
   } else {
-    setTimeout(returnFromEnding, 1300);
+    scheduleEndingReturn();
   }
+}
+
+function scheduleEndingReturn() {
+  if (ending.hidden || endingReturning) return;
+  clearTimeout(endingTimer);
+  endingTimer = setTimeout(returnFromEnding, 1300);
 }
 
 replayFilm.addEventListener('click', () => startEnding(true));
 finishGame.addEventListener('click', () => startEnding(false));
+exitFilm.addEventListener('click', returnFromEnding);
 endingFilm.addEventListener('timeupdate', () => {
   const remaining = endingFilm.duration - endingFilm.currentTime;
   if (Number.isFinite(remaining)) {
@@ -1186,7 +1200,7 @@ endingFilm.addEventListener('timeupdate', () => {
 });
 endingFilm.addEventListener('ended', returnFromEnding);
 endingFilm.addEventListener('error', () => {
-  if (!ending.hidden && !endingFilm.hidden) setTimeout(returnFromEnding, 1300);
+  if (!endingFilm.hidden) scheduleEndingReturn();
 });
 for (const [step, button] of cartChecklist.entries()) {
   button.addEventListener('click', () => {

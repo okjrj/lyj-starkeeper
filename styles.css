@@ -592,7 +592,21 @@ h1 img { display: block; width: 100%; height: auto; }
 .ending[data-returning] { animation: ending-return .7s ease both; pointer-events: none; }
 @keyframes ending-return { from { opacity: 1; } to { opacity: 0; } }
 .ending-film { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; transition: opacity .23s linear; }
+.exit-film {
+  position: absolute;
+  left: clamp(16px, 4vw, 56px);
+  top: 50%;
+  translate: 0 -50%;
+  min-height: 48px;
+  padding: 8px 16px;
+  border: 1px solid #fff9;
+  border-radius: 6px;
+  color: #fff;
+  background: #07172ce8;
+}
+.exit-film:hover { background: #233751; }
 [data-view="sky"]:has(.ending:not([hidden])) .gloves { visibility: hidden; }
+[data-view="sky"]:has(.exit-film:not([hidden])) .magic-glove { visibility: visible; z-index: 6; }
 .ending-message {
   margin: 0;
   font-family: "Batang", serif;
