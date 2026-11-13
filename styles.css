@@ -386,27 +386,230 @@ h1 img { display: block; width: 100%; height: auto; }
 [data-view="window"] .window-guide { inset-inline-start: min(30vw, 322px); }
 .night-yard, .night-yard-art { position: absolute; inset: 0; width: 100%; height: 100%; }
 .night-yard { animation: reveal-back .45s both; }
+.night-yard:not([data-filled]) .yard-cart-filled { visibility: hidden; }
 .yard-object {
   width: 100%;
   height: 100%;
+  padding: 0;
   background: transparent;
-  border: 1px solid transparent;
-  border-radius: 12px;
+  border: 0;
+  pointer-events: none;
 }
-.yard-object:is(:hover, :focus-visible, [data-hand-hover], [aria-pressed="true"]) {
-  border-color: #ffefac;
-  background: #ffdc8422;
+.yard-object svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.yard-object path {
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: 2px;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  pointer-events: visibleFill;
 }
-.yard-ladder { clip-path: polygon(43% 0, 99% 0, 57% 100%, 0 100%); }
+.yard-object:is(:hover, :focus-visible, [data-hand-hover]) { outline: none; box-shadow: none; }
+.yard-object:is(:hover, :focus-visible, [data-hand-hover], [aria-pressed="true"]) path {
+  stroke: #fff2bb;
+  filter: drop-shadow(0 0 5px #ffcf69);
+}
 .yard-feedback { position: absolute; bottom: 8svh; left: 50%; translate: -50%; width: max-content; max-width: 90%; }
+.night-yard-art {
+  transform-origin: var(--cart-zoom-x, 33%) var(--cart-zoom-y, 57%);
+  transition: transform .52s cubic-bezier(.22,.65,.22,1);
+}
+.night-yard[data-zoom] .night-yard-art { transform: scale(1.24); }
+.cart-view, .cart-art { position: absolute; inset: 0; width: 100%; height: 100%; }
+.cart-view { animation: reveal-back .4s both; }
+.cart-lit { opacity: 0; }
+.cart-view[data-lit] .cart-lit { opacity: 1; transition: opacity 1.1s ease-in-out; }
+.cart-checklist { inset-inline-start: min(30vw, 360px); }
+.cart-progress { width: min(220px, 70%); accent-color: #ffcf6e; }
+.cart-art { transition: transform .85s ease, opacity .85s ease; }
+.cart-view[data-returning] { pointer-events: none; animation: none; }
+.cart-view[data-returning] .cart-art { transform: scale(.68); opacity: 0; }
+.cart-view[data-returning] .cart-checklist { opacity: 0; transition: opacity .6s ease; }
+.cart-sparkles { opacity: 0; pointer-events: none; }
+.cart-view[data-lit] .cart-sparkles { opacity: 1; }
+.cart-sparkle {
+  fill: #fff4bc;
+  transform-box: fill-box;
+  transform-origin: center;
+  filter: drop-shadow(0 0 7px #ffe290);
+  animation: cart-twinkle 1.4s var(--spark-delay) ease-in-out infinite both;
+}
+@keyframes cart-twinkle {
+  0%, 100% { opacity: 0; scale: .3; }
+  45% { opacity: 1; scale: 1; }
+}
+.falling-basket {
+  position: fixed;
+  z-index: 3;
+  top: 0;
+  left: 0;
+  width: clamp(185px, 25.2vw, 319px);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  pointer-events: auto;
+  transform: translate(var(--x), var(--y)) translate(-50%, -34%) rotate(var(--basket-angle, 0deg));
+  filter: drop-shadow(0 5px 9px #0009);
+}
+.falling-basket img { display: block; width: 100%; pointer-events: none; }
+.falling-basket .basket-fill {
+  position: absolute;
+  inset: 0;
+  clip-path: inset(var(--basket-mask, 100%) 0 0);
+  transition: clip-path .25s ease;
+}
+.falling-basket[data-caught] { pointer-events: none; }
+.sky-view, .sky-stars, .sky-placement { position: absolute; inset: 0; width: 100%; height: 100%; }
+.sky-view { overflow: hidden; background: #091b35; animation: reveal-back .45s both; }
+.sky-placement { padding: 0; border: 0; background: transparent; }
+.sky-guide {
+  position: absolute;
+  top: 4svh;
+  left: 50%;
+  translate: -50%;
+  width: max-content;
+  max-width: calc(100% - 32px);
+  text-align: center;
+  pointer-events: none;
+}
+.sky-guide p { margin: 0; }
+.sky-guide-detail { max-width: 42em; padding-top: 5px; font-size: .88em; }
+.sky-ladder {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: clamp(100px, 17vw, 220px);
+  height: 250%;
+  translate: -50% var(--climb, 0svh);
+  border-inline: clamp(9px, 1.2vw, 17px) solid #a98154;
+  background: linear-gradient(90deg, #e2bb793b, transparent 10% 90%, #e2bb793b);
+  box-shadow: inset 2px 0 #e7bb79, inset -2px 0 #e7bb79, 0 0 18px #0007;
+  transition: translate .62s cubic-bezier(.2,.7,.25,1), opacity .6s;
+}
+.sky-rung {
+  position: absolute;
+  bottom: var(--rung);
+  inset-inline: 0;
+  height: 46px;
+  border: 0;
+  background: transparent;
+}
+.sky-rung::before {
+  content: "";
+  position: absolute;
+  inset: 18px 0;
+  border-radius: 3px;
+  background: linear-gradient(#e0bc82, #8a633f);
+  box-shadow: 0 3px 4px #0007;
+}
+.sky-rung[aria-current="step"] {
+  --rung-reach: clamp(58px, 13vw, 170px);
+  --rung-hit-height: clamp(128px, 24svh, 230px);
+  z-index: 1;
+  inset-inline: calc(-1 * var(--rung-reach));
+  height: var(--rung-hit-height);
+  margin-bottom: calc(23px - var(--rung-hit-height) / 2);
+}
+.sky-rung[aria-current="step"]::before {
+  inset: calc(50% - 5px) var(--rung-reach);
+  background: #fff0b9;
+  box-shadow: 0 0 9px 4px #ffe4a7, 0 0 24px 10px #ffcb6bc2, 0 0 48px 18px #ffad4c70;
+}
+.sky-view[data-stage="place"] .sky-ladder { pointer-events: none; }
+.sky-view[data-stage="moon"] .sky-ladder { visibility: hidden; }
+.sky-view[data-stage="moon"] .sky-stars { z-index: 1; pointer-events: none; }
+.sky-view[data-stage="moon"] .sky-star[data-small] { visibility: hidden; }
+.sky-view[data-stage="moon"] .sky-guide { z-index: 1; }
+.sky-star, .held-star {
+  position: absolute;
+  color: #ffdf88;
+  text-shadow: 0 0 14px #ffc54f;
+  translate: -50% -50%;
+  pointer-events: none;
+}
+.sky-star { left: var(--x); top: var(--y); font-size: clamp(32px, 5vw, 64px); }
+.sky-star[data-small] { font-size: var(--size); animation: sky-twinkle var(--duration) var(--delay) ease-in-out infinite alternate; }
+@keyframes sky-twinkle { from { opacity: .28; scale: .72; } to { opacity: 1; scale: 1.12; } }
+.held-star { position: fixed; z-index: 4; left: var(--x); top: var(--y); font-size: clamp(30px, 4vw, 52px); }
+.sky-moon {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 50%;
+  animation: moon-arrive .9s ease both;
+  pointer-events: none;
+}
+@keyframes moon-arrive { from { opacity: 0; transform: translateY(-7%); } to { opacity: 1; transform: translateY(0); } }
+.moon-hit-area, .moon-finale, .ending {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.moon-hit-area { z-index: 1; pointer-events: none; }
+.moon-open {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  pointer-events: none;
+}
+.moon-open svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.moon-open path { fill: transparent; stroke: transparent; pointer-events: visibleFill; vector-effect: non-scaling-stroke; }
+.moon-open:is(:hover, :focus-visible, [data-hand-hover]) { outline: none; box-shadow: none; }
+.moon-open:is(:hover, :focus-visible, [data-hand-hover]) path { stroke: #fff3b3; stroke-width: 2; filter: drop-shadow(0 0 9px #ffda81); }
+.moon-finale {
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  padding: 12px 8px;
+  grid-template-rows: auto minmax(0, 1fr);
+  background: #07172c6b;
+}
+.moon-finale-guide { text-align: center; font-weight: 400; }
+.full-moon {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: clamp(7px, 2svh, 16px);
+  width: min(550px, 89vw, max(225px, calc(100svh - 100px)));
+  aspect-ratio: 1;
+  padding: min(7vw, 52px);
+  border-radius: 50%;
+  color: #2e2830;
+  text-align: center;
+  background: radial-gradient(ellipse at 35% 34%, #fffae5, #f1d89b 80%, #eac686);
+  box-shadow: 0 0 46px #ffe5a99c, 0 0 100px #ffe19d46;
+  animation: full-moon-arrive .8s cubic-bezier(.2,.7,.25,1) both;
+}
+.full-moon button { min-height: 44px; padding: 6px 14px; border: 1px solid #6c5142; border-radius: 6px; background: #fff6d5; font-size: clamp(.8rem, 2.4vmin, 1rem); }
+.full-moon .replay-film { color: #fff6db; background: #27344b; border-color: #27344b; }
+@keyframes full-moon-arrive { from { opacity: 0; transform: scale(.62); } to { opacity: 1; transform: scale(1); } }
+.ending { z-index: 5; display: grid; place-items: center; background: #000; animation: reveal-back 1.3s both; }
+.ending[data-returning] { animation: ending-return .7s ease both; pointer-events: none; }
+@keyframes ending-return { from { opacity: 1; } to { opacity: 0; } }
+.ending-film { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; transition: opacity .23s linear; }
+[data-view="sky"]:has(.ending:not([hidden])) .gloves { visibility: hidden; }
+.ending-message {
+  margin: 0;
+  font-family: "Batang", serif;
+  font-size: clamp(1rem, 4vmin, 2rem);
+  line-height: 1.55;
+  text-align: center;
+  word-break: keep-all;
+}
 @media (max-width: 700px) {
   [data-view="window"] .window-guide { inset: 112px 8px auto; }
+  .cart-checklist { inset: 112px 8px auto; }
 }
 @media (max-aspect-ratio: 1/1) {
   .night-yard { overflow: hidden; }
   .night-yard-art { width: 150%; left: -5%; }
-  [data-view="yard"] .scene-menu { inset: auto 12px 12px; translate: none; align-items: center; }
-  [data-view="yard"] .scene-menu-buttons { display: flex; gap: 6px; }
+  :is([data-view="yard"], [data-view="cart"]) .scene-menu { inset: auto 12px 12px; translate: none; align-items: center; }
+  :is([data-view="yard"], [data-view="cart"]) .scene-menu-buttons { display: flex; gap: 6px; }
   .yard-feedback { bottom: 72px; }
 }
 .held-sun {
@@ -538,6 +741,8 @@ h1 img { display: block; width: 100%; height: auto; }
 }
 button[data-hand-hover] { outline: 2px solid #fff; outline-offset: 4px; }
 button[data-hand-hover] { box-shadow: inset 0 -3px #92abd3; }
+.sky-rung:is(:focus-visible, [data-hand-hover]) { outline: none; box-shadow: none; }
+.sky-rung[aria-current="step"]:is(:focus-visible, :hover, [data-hand-hover])::before { filter: brightness(1.2); }
 .house-door:is(:focus-visible, [data-hand-hover]) { outline: none; box-shadow: none; }
 [data-view]:not([data-view="title"]) .title-panel { opacity: 0; transform: translateX(-105%); pointer-events: none; }
 [data-view]:not([data-view="title"]) .camera-status { display: none; }

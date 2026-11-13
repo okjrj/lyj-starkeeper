@@ -48,14 +48,74 @@
     <section class="night-yard" aria-label="별 관리인의 집 밖 밤 풍경" hidden>
       <svg class="night-yard-art" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
         <image href="assets/night-yard.webp" width="1920" height="1080"/>
-        <foreignObject x="555" y="540" width="179" height="149">
-          <button class="yard-object" type="button" aria-label="별박스" data-yard-object="box"></button>
+        <image class="yard-cart-filled" href="assets/yard-cart-filled.webp" x="554" y="551" width="176" height="133"/>
+        <foreignObject x="550" y="545" width="185" height="145">
+          <button class="yard-object" type="button" aria-label="별박스" data-yard-object="box">
+            <svg viewBox="550 545 185 145" aria-hidden="true">
+              <path d="M554 592 L573 582 L580 570 L600 561 L610 550 L628 554 L637 548 L658 559 L674 563 L692 580 L705 586 L696 623 L730 632 L729 640 L691 635 L677 663 L653 667 L641 682 L607 681 L593 666 L577 668 L568 655 Z"/>
+            </svg>
+          </button>
         </foreignObject>
-        <foreignObject x="698" y="0" width="160" height="700">
-          <button class="yard-object yard-ladder" type="button" aria-label="사다리" data-yard-object="ladder"></button>
+        <foreignObject x="698" y="0" width="144" height="700">
+          <button class="yard-object" type="button" aria-label="사다리" data-yard-object="ladder">
+            <svg viewBox="698 0 144 700" aria-hidden="true">
+              <path fill-rule="evenodd" d="M775 0 H836 L766 696 L751 694 L755 657 L719 653 L714 694 L700 691 Z
+              M785 0 L782 22 H820 L822 0 Z M781 30 L776 75 H815 L819 30 Z M775 83 L770 128 H809 L814 83 Z
+              M769 136 L764 180 H804 L808 136 Z M763 188 L758 234 H798 L803 188 Z
+              M757 242 L752 287 H793 L797 242 Z M751 295 L746 338 H788 L792 295 Z
+              M745 346 L740 391 H783 L787 346 Z M739 399 L734 442 H777 L782 399 Z
+              M733 450 L728 495 H772 L776 450 Z M727 503 L722 546 H767 L771 503 Z
+              M721 554 L716 597 H761 L766 554 Z M715 605 L710 644 L756 649 L760 605 Z"/>
+            </svg>
+          </button>
         </foreignObject>
       </svg>
       <p class="house-message-card yard-feedback" role="status" hidden></p>
+    </section>
+    <section class="cart-view" aria-label="별박스에 빛 채우기" hidden>
+      <svg class="cart-art" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <image href="assets/star-cart-dark.webp" width="1920" height="1080"/>
+        <image class="cart-lit" href="assets/star-cart-lit.webp" width="1920" height="1080"/>
+        <ellipse class="cart-stars-target" cx="888" cy="314" rx="430" ry="157" fill="transparent"/>
+        <g class="cart-sparkles"></g>
+      </svg>
+      <div class="window-guide cart-checklist">
+        <ol class="window-checklist" aria-label="별박스에서 할 일">
+          <li><button type="button" data-cart-step="0">별빛 켜기</button></li>
+          <li><button type="button" data-cart-step="1">바구니 잡기</button></li>
+          <li><button type="button" data-cart-step="2">별 담기</button></li>
+        </ol>
+        <p class="house-message-card window-instruction cart-guide" role="status"></p>
+        <progress class="cart-progress" aria-label="바구니에 담긴 별" max="1" value="0" hidden></progress>
+      </div>
+    </section>
+    <section class="sky-view" aria-label="밤하늘과 사다리" hidden>
+      <div class="sky-stars" aria-hidden="true"></div>
+      <div class="sky-ladder" aria-label="사다리"></div>
+      <button class="sky-placement" type="button" aria-label="별을 이곳에 걸기" hidden></button>
+      <img class="sky-moon" src="assets/moon-scene.webp" alt="별이 반짝이는 밤하늘, 초승달까지 이어진 사다리" hidden>
+      <svg class="moon-hit-area" viewBox="0 0 960 540" preserveAspectRatio="xMidYMid slice" hidden>
+        <foreignObject x="359" y="26" width="337" height="329">
+          <button class="moon-open" type="button" aria-label="달 선택하기">
+            <svg viewBox="359 26 337 329" aria-hidden="true"><path d="M488 34 C593 6 689 85 692 181 C697 278 621 350 535 352 C457 356 392 306 362 249 C409 300 471 319 531 306 C576 296 612 269 609 237 C609 224 607 217 609 211 C592 205 605 198 615 190 C634 153 602 47 488 34 Z"/></svg>
+          </button>
+        </foreignObject>
+      </svg>
+      <div class="house-message-card sky-guide" role="status">
+        <p class="sky-guide-title"></p>
+        <p class="sky-guide-detail" hidden><strong>별 집기</strong> · 빈손을 바구니 가까이 가져가 주먹을 쥐거나 잠깐 멈춰 보세요.<br><strong>별 걸기</strong> · 별을 걸고 싶은 곳으로 손을 옮긴 뒤 손을 펴세요.</p>
+      </div>
+    </section>
+    <section class="moon-finale" aria-labelledby="moon-finale-title" hidden>
+      <h2 class="house-message-card moon-finale-guide" id="moon-finale-title">오늘 업무를 모두 마치셨군요! 당신은 진정한 <strong>“별 관리인”</strong>이 되었어요.</h2>
+      <div class="full-moon">
+        <p class="ending-message">오늘 당신이 걸어 둔 별이<br>누군가의 밤을 밝혀 줄 거예요.</p>
+        <button class="replay-film" type="button">별 관리인의 하루 재생하기</button>
+        <button class="finish-game" type="button">게임 끝내기</button>
+      </div>
+    </section>
+    <section class="ending" aria-label="별 관리인의 하루 엔딩" hidden>
+      <video class="ending-film" src="image/앞부분.mp4" preload="none" playsinline hidden></video>
     </section>
     <section class="house-interior" aria-label="별 관리인의 방" hidden>
       <div class="room-scroll">
@@ -91,7 +151,7 @@
         <h2 id="room-note-title">당신이 새로운 별 관리인이군요.<br>별 관리는 이렇게 합니다.</h2>
         <ol class="room-note-method" id="room-note-method" hidden>
           <li><strong>창문</strong>에서 <strong>밤하늘</strong> 만들기</li>
-          <li><strong>햇빛</strong>으로 <strong>별빛</strong> 켜기</li>
+          <li><strong>햇빛</strong>으로 <strong>별빛</strong> 켜고 <strong>바구니</strong>에 담기</li>
           <li><strong>사다리</strong>를 타고 올라가 밤하늘에 별 걸기</li>
         </ol>
         <div class="room-note-actions">
@@ -191,6 +251,11 @@
       <img class="magic-glove" data-glove="left" src="assets/magic-glove.svg" alt="" hidden>
       <img class="magic-glove" data-glove="right" src="assets/magic-glove.svg" alt="" hidden>
       <img class="held-sun" src="assets/window-sun.png" alt="" hidden>
+      <button class="falling-basket" type="button" aria-label="떨어지는 바구니 잡기" hidden>
+        <img src="assets/empty-basket.webp" alt="">
+        <img class="basket-fill" src="assets/falling-basket.webp" alt="">
+      </button>
+      <span class="held-star" aria-hidden="true" hidden>★</span>
     </div>
     <div class="house-message" role="status" hidden>
       <p class="house-message-card">이곳은 <strong>별 관리인의 집</strong>입니다. 안으로 들어가 볼까요?</p>
