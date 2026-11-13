@@ -120,8 +120,9 @@ let starReach;
 let cartStep = 0;
 let cartReturnTimer;
 let fillingMotion;
+let basketFillTimer;
 let lastFillChime = 0;
-const cartHints = ['해를 별 가까이에 대어 주세요.', '떨어지는 바구니를 잡아주세요.', '별박스 위에서 두 손을 좌우로 움직여 별을 담아 주세요.'];
+const cartHints = ['해를 별 가까이에 대어 주세요.', '떨어지는 바구니를 잡아주세요.', '두 팔을 활짝 벌려 별을 가득 담아 주세요!'];
 const windowHints = [
   '두 손의 검지를 들고 커튼을 양옆으로 벌려 주세요.',
   '작은 줄 위에서 주먹을 쥐고 아래로 당겨 주세요.',
@@ -621,6 +622,7 @@ function startBasketFall() {
 function resetBasket(keepBasket) {
   clearTimeout(basketStartTimer);
   clearTimeout(cartReturnTimer);
+  clearInterval(basketFillTimer);
   cancelAnimationFrame(basketFrame);
   fillingMotion = undefined;
   lastFillChime = 0;
@@ -650,6 +652,17 @@ function checkBasketHands(hands) {
 }
 
 function setCartStep(step) {
+  clearInterval(basketFillTimer);
+  if (step === 2) {
+    const assistStart = performance.now() + 3000;
+    let lastAssist = assistStart;
+    basketFillTimer = setInterval(() => {
+      const now = performance.now();
+      if (now <= lastAssist) return;
+      addBasketProgress(Math.min(now - lastAssist, 250) / 22000);
+      lastAssist = now;
+    }, 100);
+  }
   cartStep = step;
   cartGuide.textContent = cartHints[step] ?? '바구니에 별을 모두 담았어요!';
   cartProgress.hidden = step < 2;
@@ -662,25 +675,28 @@ function setCartStep(step) {
 
 function fillBasketFromMotion(hands) {
   const bounds = cartTarget.getBoundingClientRect();
-  const margin = Math.min(90, innerWidth * .14);
-  const expected = basketHolder === pointerGlove ? 1 : 2;
-  const aboveCart = hands.length === expected && hands.every(({ x, y }) =>
-    x >= bounds.left - margin && x <= bounds.right + margin
-    && y >= bounds.top - margin && y <= bounds.bottom + margin);
-  if (!aboveCart) {
+  const margin = Math.min(160, innerHeight * .24);
+  const nearby = hands.filter(({ y }) => y >= bounds.top - margin && y <= bounds.bottom + margin);
+  if (!nearby.length) {
     fillingMotion = undefined;
     return;
   }
   const previous = fillingMotion;
-  fillingMotion = new Map(hands.map(({ glove, x }) => [glove, x]));
+  fillingMotion = new Map(nearby.map(({ glove, x }) => [glove, x]));
   if (!previous) return;
-  const distances = hands.map(({ glove, x }) => Math.abs(x - (previous.get(glove) ?? x)));
-  const distance = Math.min(...distances);
-  if (distance < 2) {
-    for (const { glove } of hands) fillingMotion.set(glove, previous.get(glove) ?? fillingMotion.get(glove));
-    return;
+  let distance = 0;
+  for (const { glove, x } of nearby) {
+    const lastX = previous.get(glove) ?? x;
+    const movement = Math.abs(x - lastX);
+    if (movement < 7) fillingMotion.set(glove, lastX);
+    else distance += Math.min(movement, 55);
   }
-  const progress = Math.min(1, cartProgress.value + Math.min(distance, 55) / Math.max(330, bounds.width * .78));
+  addBasketProgress(distance / Math.max(1250, innerWidth * 1.8));
+}
+
+function addBasketProgress(amount) {
+  if (cartStep !== 2 || amount <= 0) return;
+  const progress = Math.min(1, cartProgress.value + amount);
   cartProgress.value = progress;
   setBasketFill(progress);
   const milestone = Math.floor(progress * 6);
@@ -731,11 +747,21 @@ function renderSkyStage() {
     if (stage === 'climb' && index === climbStep) rung.setAttribute('aria-current', 'step');
     else rung.removeAttribute('aria-current');
   }
-  skyGuide.textContent = stage === 'moon' ? '달에 도착했어요! 달을 눌러 주세요.'
-    : stage === 'place' ? '하늘에 별을 배치해 주세요'
-    : climbStep === 4 ? '별을 모두 걸었어요! 확인하기 위해 사다리를 더 올라가 볼까요?'
-    : '빛나는 발판을 아래에서부터 차례대로 눌러 주세요.';
+  if (stage === 'climb' && climbStep !== 4) {
+    showLadderGuide();
+  } else {
+    skyGuide.textContent = stage === 'moon' ? '달에 도착했어요! 달을 눌러 주세요.'
+      : stage === 'place' ? '하늘에 별을 배치해 주세요'
+      : '별을 모두 걸었어요! 확인하기 위해 사다리를 더 올라가 볼까요?';
+  }
   scheduleSkyAssist();
+}
+
+function showLadderGuide() {
+  const highlight = document.createElement('strong');
+  highlight.textContent = '빛나는 발판';
+  skyGuide.replaceChildren('사다리를 올라가 볼까요?', document.createElement('br'),
+    highlight, '을 아래에서부터 차례대로 눌러 주세요.');
 }
 
 function scheduleSkyAssist() {
@@ -1111,7 +1137,7 @@ for (const [index, rung] of skyRungs.entries()) {
   rung.addEventListener('click', () => {
     if (skyView.dataset.stage !== 'climb' || climbTimer) return;
     if (index !== climbStep) {
-      skyGuide.textContent = '빛나는 발판부터 차례대로 눌러 주세요.';
+      showLadderGuide();
       return;
     }
     climbNextRung();
